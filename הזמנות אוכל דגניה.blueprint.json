@@ -1,0 +1,190 @@
+{
+    "name": "הזמנות אוכל דגניה",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 4151586
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 150,
+                    "name": "הזמנה נכנסת"
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 150,
+                    "name": "האם ההזמנה תקינה?"
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 3,
+                            "module": "datastore:AddRecord",
+                            "version": 1,
+                            "parameters": {
+                                "datastore": 267642
+                            },
+                            "filter": {
+                                "name": "הזמנה תקינה: שם, תאריך ומנה עיקרית",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{1.person}}",
+                                            "o": "exist"
+                                        },
+                                        {
+                                            "a": "{{1.date}}",
+                                            "o": "exist"
+                                        },
+                                        {
+                                            "a": "{{1.meat}}",
+                                            "o": "exist"
+                                        }
+                                    ],
+                                    [
+                                        {
+                                            "a": "{{1.person}}",
+                                            "o": "exist"
+                                        },
+                                        {
+                                            "a": "{{1.date}}",
+                                            "o": "exist"
+                                        },
+                                        {
+                                            "a": "{{1.veg}}",
+                                            "o": "exist"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "key": "{{1.date}}_{{1.person}}",
+                                "data": {
+                                    "veg": "{{1.veg}}",
+                                    "date": "{{1.date}}",
+                                    "meat": "{{1.meat}}",
+                                    "side1": "{{1.side1}}",
+                                    "side2": "{{1.side2}}",
+                                    "person": "{{1.person}}",
+                                    "salad1": "{{1.salad1}}",
+                                    "salad2": "{{1.salad2}}"
+                                },
+                                "overwrite": true
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 0,
+                                    "name": "שמירת ההזמנה"
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "datastore": {
+                                            "label": "הזמנות אוכל דגניה"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": 5,
+                            "module": "gateway:WebhookRespond",
+                            "version": 1,
+                            "mapper": {
+                                "body": "{\"ok\":true}",
+                                "status": 200
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 0,
+                                    "name": "אישור שמירה"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 4,
+                            "module": "gateway:WebhookRespond",
+                            "version": 1,
+                            "filter": {
+                                "name": "הזמנה לא תקינה",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{1.person}}",
+                                            "o": "notexist"
+                                        }
+                                    ],
+                                    [
+                                        {
+                                            "a": "{{1.date}}",
+                                            "o": "notexist"
+                                        }
+                                    ],
+                                    [
+                                        {
+                                            "a": "{{1.meat}}",
+                                            "o": "notexist"
+                                        },
+                                        {
+                                            "a": "{{1.veg}}",
+                                            "o": "notexist"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "body": "{\"ok\":false,\"error\":\"חסר שם, תאריך או מנה עיקרית\"}",
+                                "status": 400
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 300,
+                                    "name": "הודעת שגיאה"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu1.make.com",
+        "notes": []
+    }
+}
